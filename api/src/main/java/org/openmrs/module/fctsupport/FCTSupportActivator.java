@@ -17,7 +17,8 @@ package org.openmrs.module.fctsupport;
 import org.apache.commons.logging.Log; 
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.module.ModuleActivator;
-
+import org.openmrs.api.context.Context;
+import org.openmrs.module.fctsupport.handler.OutreachMotherHandler;
 /**
  * This class contains the logic that is run every time this module is either started or stopped.
  */
@@ -51,6 +52,8 @@ public class FCTSupportActivator implements ModuleActivator {
 	 */
 	public void started() {
 		log.info("FCT Support Module started");
+        log.info("Starting Amrscomplexobs module");
+        Context.getObsService().registerHandler("OutReachMotherHandler", new OutreachMotherHandler());
 	}
 	
 	/**

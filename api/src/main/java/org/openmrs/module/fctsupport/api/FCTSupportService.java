@@ -13,6 +13,8 @@
  */
 package org.openmrs.module.fctsupport.api;
 
+import java.util.List;
+import org.openmrs.Field;
 import org.openmrs.api.OpenmrsService;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,4 +35,5 @@ public interface FCTSupportService extends OpenmrsService {
 	 * Add service methods here
 	 * 
 	 */
+    public List<Field> getComplexConceptFieldUuids();
 }

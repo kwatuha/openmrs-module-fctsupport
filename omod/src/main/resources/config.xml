@@ -12,7 +12,10 @@
 		${project.parent.description}
 	</description>
 	<updateURL>https://modules.openmrs.org/modules/download/${project.parent.artifactId}/update.rdf</updateURL>
-	<require_version>${openMRSVersion}</require_version>
+	<require_version>1.10.0</require_version>
+
+
+
 	<!-- / Module Properties -->
 
 	
@@ -48,6 +51,11 @@
 		<file>messages_es.properties</file>
 	</messages>
 	<!-- /Internationalization -->
+
+    <advice>
+        <point>org.openmrs.module.xforms.XformsService</point>
+        <class>org.openmrs.module.fctsupport.aop.ProcessObs</class>
+    </advice>
 
 </module>
 

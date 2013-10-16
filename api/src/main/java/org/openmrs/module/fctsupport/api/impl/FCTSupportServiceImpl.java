@@ -13,12 +13,13 @@
  */
 package org.openmrs.module.fctsupport.api.impl;
 
+import java.util.List;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.module.fctsupport.api.FCTSupportService;
 import org.openmrs.module.fctsupport.api.db.FCTSupportDAO;
-
+import org.openmrs.Field;
 /**
  * It is a default implementation of {@link FCTSupportService}.
  */
@@ -40,5 +41,9 @@ public class FCTSupportServiceImpl extends BaseOpenmrsService implements FCTSupp
      */
     public FCTSupportDAO getDao() {
 	    return dao;
+    }
+
+    public List<Field> getComplexConceptFieldUuids(){
+        return dao.getComplexConceptFieldUuids();
     }
 }

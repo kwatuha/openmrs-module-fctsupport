@@ -13,6 +13,8 @@
  */
 package org.openmrs.module.fctsupport.api.db;
 
+import java.util.List;
+import org.openmrs.Field;
 import org.openmrs.module.fctsupport.api.FCTSupportService;
 
 /**
@@ -23,4 +25,6 @@ public interface FCTSupportDAO {
 	/*
 	 * Add DAO methods here
 	 */
+
+    public List<Field> getComplexConceptFieldUuids();
 }

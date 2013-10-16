@@ -13,9 +13,12 @@
  */
 package org.openmrs.module.fctsupport.api.db.hibernate;
 
+import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Query;
 import org.hibernate.SessionFactory;
+import org.openmrs.Field;
 import org.openmrs.module.fctsupport.api.db.FCTSupportDAO;
 
 /**
@@ -38,5 +41,15 @@ public class HibernateFCTSupportDAO implements FCTSupportDAO {
      */
     public SessionFactory getSessionFactory() {
 	    return sessionFactory;
+    }
+
+    public List<Field> getComplexConceptFieldUuids() {
+
+        String hql = " FROM Field WHERE concept_id in (select  conceptId from ConceptComplex)";
+
+        Query q = sessionFactory.getCurrentSession().createQuery(hql);
+
+        List<Field> fieldUuids = q.list();
+        return fieldUuids;
     }
 }
