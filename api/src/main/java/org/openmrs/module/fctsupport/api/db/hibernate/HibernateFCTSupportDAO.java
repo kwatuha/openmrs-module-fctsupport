@@ -16,10 +16,13 @@ package org.openmrs.module.fctsupport.api.db.hibernate;
 import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Expression;
 import org.openmrs.Field;
 import org.openmrs.module.fctsupport.api.db.FCTSupportDAO;
+import org.openmrs.module.fctsupport.model.Amrscomplexobs;
 
 /**
  * It is a default implementation of  {@link FCTSupportDAO}.
@@ -51,5 +54,41 @@ public class HibernateFCTSupportDAO implements FCTSupportDAO {
 
         List<Field> fieldUuids = q.list();
         return fieldUuids;
+    }
+
+    public Amrscomplexobs saveAmrscomplexobs(Amrscomplexobs amrscomplexobs) {
+        // TODO Auto-generated method stub
+
+        sessionFactory.getCurrentSession().saveOrUpdate(amrscomplexobs);
+
+        return amrscomplexobs;
+
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public List<Amrscomplexobs> getAmrscomplexobs() {
+        // TODO Auto-generated method stub
+
+
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Amrscomplexobs.class);
+
+
+        return criteria.list();
+
+    }
+    @SuppressWarnings("unchecked")
+    public Amrscomplexobs getAmrscomplexobsByUuid(String uuid) {
+
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Amrscomplexobs.class).add(
+                Expression.eq("uuid", uuid));
+
+        @SuppressWarnings("unchecked")
+
+        List<Amrscomplexobs>amrscomplexobs=criteria.list();
+        if (null==amrscomplexobs||amrscomplexobs.isEmpty()){
+            return null;
+        }
+        return amrscomplexobs.get(0);
     }
 }

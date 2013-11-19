@@ -16,6 +16,7 @@ package org.openmrs.module.fctsupport.api;
 import java.util.List;
 import org.openmrs.Field;
 import org.openmrs.api.OpenmrsService;
+import org.openmrs.module.fctsupport.model.Amrscomplexobs;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -36,4 +37,10 @@ public interface FCTSupportService extends OpenmrsService {
 	 * 
 	 */
     public List<Field> getComplexConceptFieldUuids();
+
+    public Amrscomplexobs saveAmrscomplexobs(Amrscomplexobs amrscomplexobs);
+
+    public List<Amrscomplexobs> getAmrscomplexobs();
+
+    public Amrscomplexobs getAmrscomplexobsByUuid(String uuid);
 }

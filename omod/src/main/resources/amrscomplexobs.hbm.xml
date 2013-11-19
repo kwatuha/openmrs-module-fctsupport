@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+<hibernate-mapping>
+<class name="org.openmrs.module.fctsupport.model.Amrscomplexobs" table="amrscomplexobs">
+ <cache usage="read-write"/>
+
+		<id name="id" type="int"  column="amrscomplexobs_id"  unsaved-value="0">
+		<generator class="org.openmrs.api.db.hibernate.NativeIfNotAssignedIdentityGenerator" />
+		</id>
+
+
+    <property name="conceptData"  type="java.lang.String" column="concept_data" not-null="true" />
+    <many-to-one name="concept" class="org.openmrs.Concept" column="concept_id" />
+    <many-to-one name="location" class="org.openmrs.Location" column="location_id" />
+    <many-to-one name="provider" class="org.openmrs.Provider" column="provider_id" />
+    <property name="formId"  type="java.lang.String" column="form_id" not-null="true" />
+    <many-to-one name="patient" class="org.openmrs.Patient" column="patient_id" />
+    <property name="encounterDatetime" type="java.util.Date" column="encounter_datetime"  not-null="true" />
+
+
+			<many-to-one name="creator" class="org.openmrs.User"
+			column="creator" not-null="true" />
+
+		<property name="dateCreated" type="java.util.Date" column="datecreated"
+			not-null="true" />
+
+		<property name="voided" type="boolean" not-null="true" />
+
+    <many-to-one name="voidedBy" class="org.openmrs.User"
+			column="voided_by" />
+
+		<property name="dateVoided" type="java.util.Date" column="date_voided" />
+		<property name="voidReason" type="java.lang.String" column="void_reason"
+			length="255" />
+			
+<property name="uuid" type="java.lang.String" length="38" not-null="true" unique="true" /></class>
+</hibernate-mapping>

@@ -5,6 +5,7 @@ import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.aopalliance.aop.Advice;
@@ -16,9 +17,11 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.*;
 import org.openmrs.api.FormService;
 import org.openmrs.api.PatientService;
+import org.openmrs.api.PersonService;
 import org.openmrs.api.context.Context;
 
 import org.openmrs.module.fctsupport.api.FCTSupportService;
+import org.openmrs.module.fctsupport.model.Amrscomplexobs;
 import org.openmrs.serialization.SerializationException;
 import org.springframework.aop.Advisor;
 import org.springframework.aop.support.StaticMethodMatcherPointcutAdvisor;
@@ -48,7 +51,8 @@ import org.apache.commons.io.IOUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.openmrs.serialization.SimpleXStreamSerializer;
-import org.openmrs.serialization.OpenmrsSerializer;
+import org.openmrs.module.fctsupport.AMRSComplexObsConstants;
+import org.openmrs.module.fctsupport.util.FctSupportUtil;
 
 public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Advisor {
 
@@ -143,9 +147,22 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
                   final XPathExpression expression = xPath.compile("//*[@openmrs_field_uuid='"+fieldUuid+"']");
                   final NodeList complexFieldNodeList = (NodeList) expression.evaluate(doc, XPathConstants.NODESET);
 
-                  SimpleXStreamSerializer sn=new SimpleXStreamSerializer();
-                  Map<String, String> map = new HashMap<String, String>();
+                  //get general form details
+                  Node curNode=(Node)  xPath.evaluate(AMRSComplexObsConstants.ENCOUNTER_NODE, doc, XPathConstants.NODE);
+                  providerUsername = xPath.evaluate(AMRSComplexObsConstants.ENCOUNTER_PROVIDER, curNode);
+                  providerUsername=providerUsername.trim();
+                  providerId=FctSupportUtil.getProviderId(providerUsername);
 
+                  //Clean location id by removing decimal points
+                  locationId= FctSupportUtil.cleanLocationEntry(xPath.evaluate(AMRSComplexObsConstants.ENCOUNTER_LOCATION, curNode)) ;
+                  encounterDate=xPath.evaluate(AMRSComplexObsConstants.ENCOUNTER_ENCOUNTERDATETIME, curNode);
+
+                  curNode=(Node)  xPath.evaluate(AMRSComplexObsConstants.PATIENT_NODE, doc, XPathConstants.NODE);
+                  String patientIdentifier = xPath.evaluate(AMRSComplexObsConstants.PATIENT_ID, curNode);
+                  String formIdStr=xPath.evaluate("/form/@id", doc);
+
+
+                 //end of generail information
 
 
                   for (int i = 0; i < complexFieldNodeList.getLength(); ++i) {
@@ -157,7 +174,8 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
 
 
                       NodeList NodeListChild= complexFieldNodeList.item(i).getChildNodes();
-                      Integer nchilds=  NodeListChild.getLength();
+
+                      Map<String, String> map = new HashMap<String, String>();
 
                       for (int x = 0; x < NodeListChild.getLength(); ++x) {
                           Node node = NodeListChild.item(x);
@@ -171,7 +189,7 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
                                       //Now get the field_name
                                       FormService formService=Context.getFormService();
                                       Field field=formService.getFieldByUuid(attribute);
-                                      map.put(field.getName(),complexConceptData);
+                                      map.put(StringUtils.trim(field.getName()),complexConceptData);
                                   }
 
                               }
@@ -181,12 +199,11 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
 
 
                       }
+                      String serializedSavedData=saveOtherPerson(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept);
 
                   }
 
-                  String serializedFromMap=sn.serialize(map);
-                  String serializedV2= StringUtils.deleteWhitespace(serializedFromMap);
-                  System.out.println(serializedFromMap);
+
               }
 
         }
@@ -204,5 +221,69 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
         return xPathFactory;
     }
 
+    public String saveOtherPerson(Map<String, String>map,String providerId,String patientIdentifier,String formId,String encounterDate,String locationId, Concept complexConcept) throws SerializationException,ParseException {
+        SimpleXStreamSerializer sn=new SimpleXStreamSerializer();
+        String serializedData= sn.serialize(map);
+        if(!StringUtils.isBlank(serializedData)){
+            Person person =new Person();
+            PersonService personService=Context.getPersonService();
+            PersonName personName= new PersonName();
+
+            personName.setFamilyName(map.get("otherPerson.family_name"));
+            personName.setGivenName(map.get("otherPerson.given_name"));
+            personName.setMiddleName(map.get("otherPerson.middle_name"));
+            personName.setPreferred(true);
+            personName.setVoided(false);
+
+            person.addName(personName);
+            person.setGender(map.get("otherPerson.sex"));
+            String strBirthDate=StringUtils.trim(map.get("otherPerson.birthdate"));
+            Date birthDate = FctSupportUtil.fromSubmitString2Date(strBirthDate);
+            person.setBirthdateEstimated(false);
+            person.setBirthdate(birthDate);
+            PersonAddress address = new PersonAddress();
+            address.setAddress1("Eldoret Kenya");
+            PersonAddress preferredAddress = new PersonAddress();
+            preferredAddress.setAddress1("kakamega Uganda");
+            preferredAddress.setPreferred(true);
+            preferredAddress.setVoided(true);
+            person.addAddress(address);
+            person.addAddress(preferredAddress);
+
+            Person personSaved=personService.savePerson(person);
+            Integer pid=personSaved.getId();
+            if(pid>0){
+                map.put("personID",pid.toString()) ;
+                map.put("providerId",providerId);
+                map.put("patientIdentifier",patientIdentifier);
+                map.put("formId",formId);
+                map.put("encounterDate",encounterDate);
+                map.put("locationId",locationId);
+
+            }
+            //
+        }
+        //Final serialized data with personId and other essential data
+        serializedData=sn.serialize(map);
+
+        return serializedData;
+    }
+
+    private void saveSerializedPersonData(String data,Concept complexConcept) throws SerializationException {
+        SimpleXStreamSerializer sn=new SimpleXStreamSerializer();
+        Map<String, String> map=  sn.deserialize(data,Map.class) ;
+
+        Amrscomplexobs amrscomplexobs=new Amrscomplexobs();
+        amrscomplexobs.setConceptData(data);
+        amrscomplexobs.setConcept(complexConcept);
+        //amrscomplexobs.setPatient(Context.getPatientService().getPatientB);
+        /*private String conceptData;
+        private Date encounterDatetime;
+        private Concept concept;
+        private Location location;
+        private Provider provider;
+        private Patient patient;
+        private String formId;*/
+    }
 
 }

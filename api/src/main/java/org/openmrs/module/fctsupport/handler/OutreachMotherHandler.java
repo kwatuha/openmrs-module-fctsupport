@@ -49,7 +49,13 @@ public class OutreachMotherHandler implements SerializableComplexObsHandler {
         Set<FormField> formFields = new HashSet<FormField>();
 
 
-         List<OpenMRSTableFields>listFields= FctSupportUtil.getListDefaultNewPersonFields();
+       //  List<OpenMRSTableFields>listFields= FctSupportUtil.getListDefaultNewPersonFields();
+        List<OpenMRSTableFields>listFields= FctSupportUtil.getListRepeatingSectionFields("parentGuardian");
+
+        listFields.addAll(FctSupportUtil.getListRepeatingSectionFields("nextOfKin"));
+
+        listFields.addAll(FctSupportUtil.getListRepeatingSectionFields("treatmentSupporter"));
+
 
         for (OpenMRSTableFields tableField : listFields) {
 
@@ -116,7 +122,11 @@ public class OutreachMotherHandler implements SerializableComplexObsHandler {
     }
 
     public Obs getObs(Obs obs, String view) {
-        return null;
+        String t="kwatuha" ;
+        String tb="TB";
+        System.out.println(view);
+        obs.setValueComplex("Kwatuha Alfayo Muminmamsdsdsdsdsds"+view);
+        return obs;
     }
 
     public boolean purgeComplexData(Obs obs) {

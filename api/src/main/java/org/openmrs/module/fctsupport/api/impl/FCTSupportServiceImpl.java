@@ -20,6 +20,8 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.module.fctsupport.api.FCTSupportService;
 import org.openmrs.module.fctsupport.api.db.FCTSupportDAO;
 import org.openmrs.Field;
+import org.openmrs.module.fctsupport.model.Amrscomplexobs;
+
 /**
  * It is a default implementation of {@link FCTSupportService}.
  */
@@ -46,4 +48,22 @@ public class FCTSupportServiceImpl extends BaseOpenmrsService implements FCTSupp
     public List<Field> getComplexConceptFieldUuids(){
         return dao.getComplexConceptFieldUuids();
     }
+
+    public Amrscomplexobs saveAmrscomplexobs(Amrscomplexobs amrscomplexobs) {
+
+        return dao.saveAmrscomplexobs(amrscomplexobs);
+
+    }
+
+    public List<Amrscomplexobs> getAmrscomplexobs() {
+
+        return dao.getAmrscomplexobs();
+    }
+
+    public Amrscomplexobs getAmrscomplexobsByUuid(String uuid) {
+
+        return dao.getAmrscomplexobsByUuid(uuid);
+    }
+
+
 }
