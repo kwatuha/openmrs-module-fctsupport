@@ -199,7 +199,14 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
 
 
                       }
-                      String serializedSavedData=saveOtherPerson(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept);
+                      //String serializedSavedData=F(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept);
+                      //Save Data related to various persons
+                      savePersonTypeDetails(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept,"parentGuardian");
+                      savePersonTypeDetails(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept,"nextOfKin");
+                      savePersonTypeDetails(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept,"treatmentSupporter");
+
+
+
 
                   }
 
@@ -284,6 +291,108 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
         private Provider provider;
         private Patient patient;
         private String formId;*/
+    }
+
+    //save details by person type
+    public String savePersonTypeDetails(Map<String,
+            String>map,String providerId,String patientIdentifier,String formId,String encounterDate,String locationId, Concept complexConcept,String personType) throws SerializationException,ParseException {
+        SimpleXStreamSerializer sn=new SimpleXStreamSerializer();
+        String serializedData= sn.serialize(map);
+        if(!StringUtils.isBlank(serializedData)){
+            Person person =new Person();
+            PersonService personService=Context.getPersonService();
+            PersonName personName= new PersonName();
+
+
+            personName.setFamilyName(map.get(personType+"family_name"));
+            personName.setGivenName(map.get(personType+"given_name"));
+            personName.setMiddleName(map.get(personType+"middle_name"));
+            personName.setPreferred(true);
+            personName.setVoided(false);
+
+            person.addName(personName);
+            person.setGender(map.get(personType+"sex"));
+            String strBirthDate=StringUtils.trim(map.get(personType+"birthdate"));
+            Date birthDate = FctSupportUtil.fromSubmitString2Date(strBirthDate);
+
+            if(map.get(personType+"birthdate_estimated")=="0")
+            person.setBirthdateEstimated(true);
+
+            if(map.get(personType+"birthdate_estimated")=="1")
+              person.setBirthdateEstimated(false);
+
+
+            person.setBirthdate(birthDate);
+
+            //Adding Address Details
+            PersonAddress address = new PersonAddress();
+
+            address.setAddress2(map.get(personType+"person_address.address2"));
+
+            String  address3="Landmark:"+map.get(personType+"landmark")+
+                    "Nearest Church:"+map.get(personType+"nearest_church")+
+                    "Nearest School:"+map.get(personType+"nearest_school")+
+                    "Nearest Shopping Center:"+map.get(personType+"nearest_shopping_center")+
+                    "Estate:"+map.get(personType+"estate")+
+                    "General Route:"+map.get(personType+"general_route");
+            address.setCityVillage("Town/House:"+map.get(personType+"residential_address_village_or_home")+
+                                   "Home/House:"+map.get(personType+"person_address.city_village"));
+            address.setAddress3(address3);
+            address.setAddress5(map.get(personType+"sub_location"));
+            person.addAddress(address);
+
+
+            //add person Attributes
+
+            List<PersonAttribute> listPersonAttributes=getPersonAttributeData(map, FctSupportUtil.getMappedPersonAttributeData(),personType);
+
+           for(PersonAttribute personAttribute:listPersonAttributes) {
+               person.addAttribute(personAttribute);
+           }
+
+
+            //Saving person details
+            Person personSaved=personService.savePerson(person);
+            Integer pid=personSaved.getId();
+            if(pid>0){
+                map.put("personID",pid.toString()) ;
+                map.put("providerId",providerId);
+                map.put("patientIdentifier",patientIdentifier);
+                map.put("formId",formId);
+                map.put("encounterDate",encounterDate);
+                map.put("locationId",locationId);
+
+            }
+            //
+        }
+        //Final serialized data with personId and other essential data
+        serializedData=sn.serialize(map);
+
+        return serializedData;
+    }
+
+
+    //end of savinf details of a person type
+
+    public List<PersonAttribute> getPersonAttributeData(Map<String, String> mappedFormData,Map<Integer, String> mappedPersonAttibutes,String personType){
+        List<PersonAttribute> listPersonAttributes=new ArrayList<PersonAttribute>() ;
+
+
+
+        for (Map.Entry<Integer, String> entry : mappedPersonAttibutes.entrySet())
+        {
+
+            PersonAttributeType personAttributeType = new PersonAttributeType();
+            personAttributeType.setPersonAttributeTypeId(entry.getKey()	);
+            PersonAttribute personAttribute = new PersonAttribute() ;
+            personAttribute.setAttributeType(personAttributeType);
+            personAttribute.setValue(mappedFormData.get(personType+entry.getValue()));
+            listPersonAttributes.add(personAttribute);
+
+        }
+
+
+        return listPersonAttributes;
     }
 
 }

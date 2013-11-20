@@ -4,8 +4,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.openmrs.Person;
+import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
 import org.openmrs.User;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
@@ -592,6 +597,30 @@ public class FctSupportUtil {
         listFields.add(personTypeSelectorField);
 
         return listFields;
+    }
+
+
+    public static Map<Integer, String> getMappedPersonAttributeData(){
+        Map<Integer, String> map=new HashMap<Integer, String>() ;
+        map.put(20	,"tribe");
+        map.put(10	,"phone_number");
+        map.put(38	,"phone_number_owner");
+        map.put(39	,"relationship_to_alternative_phone_number_owner");
+        map.put(40	,"alternative_phone_number");
+        map.put(48	,"alternative_phone_number_owner");
+        map.put(56	,"relationship_alternative_phone_number_owner");
+        map.put(42	,"occupation");
+        map.put(41	,"place_of_work");
+        map.put(51	,"place_of_work_department");
+        map.put(47	,"bus_stage");
+        map.put(44	,"plot_number");
+        map.put(43	,"well_known_neighbor");
+        map.put(55	,"whom_to_ask_for");
+        map.put(46	,"landlord");
+        map.put(49	,"religious_affiliation");
+        map.put(50	,"location_of_religious_affiliation");
+
+        return map;
     }
 
 }
