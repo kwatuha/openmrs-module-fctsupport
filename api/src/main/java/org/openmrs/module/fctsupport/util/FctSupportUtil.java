@@ -204,6 +204,21 @@ public class FctSupportUtil {
         ArrayList<OpenMRSTableFields> listFields=new ArrayList();
 
         ///fields
+
+        OpenMRSTableFields   personSearchField=new OpenMRSTableFields();
+         personSearchField.setOpemrsTag(otherperson+"person_search_option") ;
+        personSearchField.setOpenmrsAttribute("person_search_option");
+        personSearchField.setFieldCaption("Person Search ");
+        personSearchField.setUuid(UUID.randomUUID().toString());
+        personSearchField.setFieldTypeId(2);
+
+        OpenMRSTableFields   personSearchWidgetField=new OpenMRSTableFields();
+        personSearchWidgetField.setOpemrsTag(otherperson+"person_find_widget") ;
+        personSearchWidgetField.setOpenmrsAttribute("person_find_widget");
+        personSearchWidgetField.setFieldCaption("Find");
+        personSearchWidgetField.setUuid(UUID.randomUUID().toString());
+        personSearchWidgetField.setFieldTypeId(2);
+
         OpenMRSTableFields   familyNameField=new OpenMRSTableFields();
         familyNameField.setOpemrsTable("patient_name");
         familyNameField.setOpemrsTag(otherperson+"family_name") ;
@@ -519,6 +534,9 @@ public class FctSupportUtil {
 
 
 //addfieldstoalist
+
+        listFields.add( personSearchField );
+        listFields.add( personSearchWidgetField );
         listFields.add( familyNameField );
         listFields.add( middleNameField );
         listFields.add( givenNameField );
@@ -551,12 +569,27 @@ public class FctSupportUtil {
         listFields.add( landlordField );
         listFields.add( religiousAffiliationField );
         listFields.add( locationOfReligiousAffiliationField );
-        listFields.add( familyNameField );
-        listFields.add( middleNameField );
-        listFields.add( givenNameField );
+
         listFields.add( birthDateEstimatedField );
         listFields.add( birthDateField );
         listFields.add( genderField );
+
+        return listFields;
+    }
+
+    public static ArrayList<OpenMRSTableFields> getDefaultRequiredField() {
+
+        ArrayList<OpenMRSTableFields> listFields=new ArrayList();
+
+        OpenMRSTableFields   personTypeSelectorField=new OpenMRSTableFields();
+        personTypeSelectorField.setOpemrsTable("amrs_person_type_selector");
+        personTypeSelectorField.setOpemrsTag("amrs_person_type_selector") ;
+        personTypeSelectorField.setOpenmrsAttribute("amrs_person_type_name");
+        personTypeSelectorField.setFieldCaption("Person Type Selector");
+        personTypeSelectorField.setUuid(UUID.randomUUID().toString());
+        personTypeSelectorField.setFieldTypeId(2);
+
+        listFields.add(personTypeSelectorField);
 
         return listFields;
     }

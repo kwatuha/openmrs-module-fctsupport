@@ -49,9 +49,9 @@ public class OutreachMotherHandler implements SerializableComplexObsHandler {
         Set<FormField> formFields = new HashSet<FormField>();
 
 
-       //  List<OpenMRSTableFields>listFields= FctSupportUtil.getListDefaultNewPersonFields();
-        List<OpenMRSTableFields>listFields= FctSupportUtil.getListRepeatingSectionFields("parentGuardian");
-
+       //  List<OpenMRSTableFields>listFields= FctSupportUtil.getListDefaultNewPersonFields();  getDefaultRequiredField()
+        List<OpenMRSTableFields>listFields= FctSupportUtil.getDefaultRequiredField();
+        listFields.addAll(FctSupportUtil.getListRepeatingSectionFields("parentGuardian"));
         listFields.addAll(FctSupportUtil.getListRepeatingSectionFields("nextOfKin"));
 
         listFields.addAll(FctSupportUtil.getListRepeatingSectionFields("treatmentSupporter"));
