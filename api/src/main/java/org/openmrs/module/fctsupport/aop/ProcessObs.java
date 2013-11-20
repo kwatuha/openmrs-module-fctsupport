@@ -15,7 +15,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.*;
+import org.openmrs.api.ConceptService;
 import org.openmrs.api.FormService;
+import org.openmrs.api.ObsService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.context.Context;
@@ -234,6 +236,8 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
         if(!StringUtils.isBlank(serializedData)){
             Person person =new Person();
             PersonService personService=Context.getPersonService();
+            ConceptService conceptService=Context.getConceptService();
+
             PersonName personName= new PersonName();
 
             personName.setFamilyName(map.get("otherPerson.family_name"));
@@ -298,9 +302,12 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
             String>map,String providerId,String patientIdentifier,String formId,String encounterDate,String locationId, Concept complexConcept,String personType) throws SerializationException,ParseException {
         SimpleXStreamSerializer sn=new SimpleXStreamSerializer();
         String serializedData= sn.serialize(map);
+        PersonService personService=Context.getPersonService();
+        ObsService obsService=Context.getObsService();
+        ConceptService conceptService=Context.getConceptService();
         if(!StringUtils.isBlank(serializedData)){
             Person person =new Person();
-            PersonService personService=Context.getPersonService();
+
             PersonName personName= new PersonName();
 
 
@@ -362,6 +369,12 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
                 map.put("encounterDate",encounterDate);
                 map.put("locationId",locationId);
 
+                //Now save observations
+                List<Obs> listObs=getPersonObsToSave(map,FctSupportUtil.getMappedConceptData(),personSaved,encounterDate,locationId, personType);
+                for(Obs obs:listObs) {
+                    obsService.saveObs(obs,"Saving Via Complex Obs Handler");
+
+                }
             }
             //
         }
@@ -393,6 +406,33 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
 
 
         return listPersonAttributes;
+    }
+
+    public List<Obs> getPersonObsToSave(Map<String, String> mappedFormData,Map<Integer, String> mappedObsTosave,Person person,String encounterDate,String locationId,String personType){
+        List<Obs> listObsToSave=new ArrayList<Obs>() ;
+
+        Obs o=new Obs();
+        ObsService os = Context.getObsService();
+        ConceptService cs = Context.getConceptService();
+
+
+
+
+        for (Map.Entry<Integer, String> entry : mappedObsTosave.entrySet())
+        {
+
+            String[] oa = mappedFormData.get(personType+entry.getValue()).split("^");
+            o.setConcept(cs.getConcept(entry.getKey()));
+            o.setDateCreated(new Date());
+            o.setCreator(Context.getAuthenticatedUser());
+            o.setLocation(new Location(Integer.parseInt(locationId)));
+            o.setObsDatetime(new Date());
+            o.setValueCoded(cs.getConcept(Integer.parseInt(oa[0])));
+            o.setPerson(person);
+            listObsToSave.add(o);
+
+        }
+        return listObsToSave;
     }
 
 }

@@ -623,4 +623,12 @@ public class FctSupportUtil {
         return map;
     }
 
+    public static Map<Integer, String> getMappedConceptData(){
+        Map<Integer, String> map=new HashMap<Integer, String>() ;
+        map.put(1054	,"marital_status");
+
+        return map;
+    }
+
+
 }
