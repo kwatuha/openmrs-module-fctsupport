@@ -23,6 +23,7 @@ import org.hibernate.criterion.Expression;
 import org.openmrs.Field;
 import org.openmrs.module.fctsupport.api.db.FCTSupportDAO;
 import org.openmrs.module.fctsupport.model.AmrsComplexObs;
+import org.openmrs.module.fctsupport.model.AmrsPersonType;
 
 /**
  * It is a default implementation of  {@link FCTSupportDAO}.
@@ -77,6 +78,10 @@ public class HibernateFCTSupportDAO implements FCTSupportDAO {
         return criteria.list();
 
     }
+
+
+
+
     @SuppressWarnings("unchecked")
     public AmrsComplexObs getAmrscomplexobsByUuid(String uuid) {
 
@@ -90,5 +95,35 @@ public class HibernateFCTSupportDAO implements FCTSupportDAO {
             return null;
         }
         return amrscomplexobs.get(0);
+    }
+
+    public List<AmrsPersonType> getAmrsPersonTypes(){
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(AmrsPersonType.class);
+
+
+        return criteria.list();
+
+    }
+
+    public AmrsPersonType saveAmrsPersonType(AmrsPersonType amrsPersonType) {
+
+        sessionFactory.getCurrentSession().saveOrUpdate(amrsPersonType);
+
+        return amrsPersonType;
+
+    }
+
+    public AmrsPersonType getAmrsPersonTypeByUuid(String uuid) {
+
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(AmrsPersonType.class).add(
+                Expression.eq("uuid", uuid));
+
+        @SuppressWarnings("unchecked")
+
+        List<AmrsPersonType>amrsPersonTypes=criteria.list();
+        if (null==amrsPersonTypes||amrsPersonTypes.isEmpty()){
+            return null;
+        }
+        return amrsPersonTypes.get(0);
     }
 }

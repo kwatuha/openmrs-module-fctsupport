@@ -21,6 +21,7 @@ import org.openmrs.module.fctsupport.api.FCTSupportService;
 import org.openmrs.module.fctsupport.api.db.FCTSupportDAO;
 import org.openmrs.Field;
 import org.openmrs.module.fctsupport.model.AmrsComplexObs;
+import org.openmrs.module.fctsupport.model.AmrsPersonType;
 
 /**
  * It is a default implementation of {@link FCTSupportService}.
@@ -63,6 +64,22 @@ public class FCTSupportServiceImpl extends BaseOpenmrsService implements FCTSupp
     public AmrsComplexObs getAmrscomplexobsByUuid(String uuid) {
 
         return dao.getAmrscomplexobsByUuid(uuid);
+    }
+
+
+    public List<AmrsPersonType> getAmrsPersonTypes(){
+        return dao.getAmrsPersonTypes();
+    }
+
+    public AmrsPersonType saveAmrsPersonType(AmrsPersonType amrsPersonType) {
+
+        return dao.saveAmrsPersonType(amrsPersonType);
+
+    }
+
+    public AmrsPersonType getAmrsPersonTypeByUuid(String uuid) {
+
+        return dao.getAmrsPersonTypeByUuid(uuid);
     }
 
 

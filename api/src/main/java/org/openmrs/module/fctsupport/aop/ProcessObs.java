@@ -4,23 +4,42 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.text.ParseException;
-import java.util.*;
 
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.openmrs.*;
+
+import org.openmrs.Concept;
+import org.openmrs.Field;
+import org.openmrs.Form;
+import org.openmrs.Location;
+import org.openmrs.Obs;
+import org.openmrs.Patient;
+import org.openmrs.Person;
+import org.openmrs.PersonAddress;
+import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
+import org.openmrs.PersonName;
+import org.openmrs.Provider;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.FormService;
 import org.openmrs.api.ObsService;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.context.Context;
 
+
 import org.openmrs.module.fctsupport.api.FCTSupportService;
 import org.openmrs.module.fctsupport.model.AmrsComplexObs;
+import org.openmrs.module.fctsupport.model.AmrsPersonType;
 import org.openmrs.serialization.SerializationException;
 import org.springframework.aop.Advisor;
 import org.springframework.aop.support.StaticMethodMatcherPointcutAdvisor;
@@ -276,9 +295,9 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
         SimpleXStreamSerializer sn=new SimpleXStreamSerializer();
         Map<String, String> map=  sn.deserialize(data,Map.class) ;
 
-        AmrsComplexObs amrsComplexObs =new AmrsComplexObs();
+        /*AmrsComplexObs amrsComplexObs =new AmrsComplexObs();
         amrsComplexObs.setConceptData(data);
-        amrsComplexObs.setConcept(complexConcept);
+        amrsComplexObs.setConcept(complexConcept);*/
         //amrsComplexObs.setPatient(Context.getPatientService().getPatientB);
         /*private String conceptData;
         private Date encounterDatetime;
@@ -429,4 +448,36 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
         return listObsToSave;
     }
 
+
+    public void savePatientPersonRelationship(Person person , Date encounterDatetime , Location location , Provider provider , Patient patient , Form formId){
+        if((person.getId()>0)&&(patient.getPatientId()>0)){
+            AmrsComplexObs complexObs= new  AmrsComplexObs();
+            complexObs.setPatient(patient);
+            complexObs.setPerson(person);
+            complexObs.setFormId(formId);
+            complexObs.setEncounterDatetime(encounterDatetime);
+            complexObs.setLocation(location);
+            complexObs.setProvider(provider);
+
+            if(Context.isAuthenticated()){
+            FCTSupportService service=Context.getService(FCTSupportService.class);
+             service.saveAmrscomplexobs(complexObs);
+            }
+
+        }
+    }
+
+    public void createPersonsFrmSubmitXml(Map<String,String>map,String providerId,String patientIdentifier,String formId,String encounterDate,String locationId, Concept complexConcept,String personType)
+            throws SerializationException,ParseException {
+                    FCTSupportService service=Context.getService(FCTSupportService.class);
+                    List<AmrsPersonType> personTpesList=service.getAmrsPersonTypes();
+                    if(personTpesList.size()>0){
+                            for(AmrsPersonType personType :personTpesList){
+
+                             savePersonTypeDetails(map, providerId.toString(), patientIdentifier, formId, encounterDate, locationId, complexConcept, personType.getPersonTypeName());
+                            }
+                    }
+
+
+    }
 }

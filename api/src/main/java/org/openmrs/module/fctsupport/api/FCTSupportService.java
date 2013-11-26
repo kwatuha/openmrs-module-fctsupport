@@ -17,6 +17,7 @@ import java.util.List;
 import org.openmrs.Field;
 import org.openmrs.api.OpenmrsService;
 import org.openmrs.module.fctsupport.model.AmrsComplexObs;
+import org.openmrs.module.fctsupport.model.AmrsPersonType;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -43,4 +44,11 @@ public interface FCTSupportService extends OpenmrsService {
     public List<AmrsComplexObs> getAmrscomplexobs();
 
     public AmrsComplexObs getAmrscomplexobsByUuid(String uuid);
+
+    public List<AmrsPersonType> getAmrsPersonTypes();
+
+
+    public AmrsPersonType saveAmrsPersonType(AmrsPersonType amrsPersonType);
+
+    public AmrsPersonType getAmrsPersonTypeByUuid(String uuid);
 }

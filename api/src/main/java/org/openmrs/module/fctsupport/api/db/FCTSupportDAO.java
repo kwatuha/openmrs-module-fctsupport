@@ -17,6 +17,7 @@ import java.util.List;
 import org.openmrs.Field;
 import org.openmrs.module.fctsupport.api.FCTSupportService;
 import org.openmrs.module.fctsupport.model.AmrsComplexObs;
+import org.openmrs.module.fctsupport.model.AmrsPersonType;
 
 /**
  *  Database methods for {@link FCTSupportService}.
@@ -34,4 +35,9 @@ public interface FCTSupportDAO {
     public List<AmrsComplexObs> getAmrscomplexobs();
 
     public AmrsComplexObs getAmrscomplexobsByUuid(String uuid);
+    public List<AmrsPersonType> getAmrsPersonTypes();
+
+    public AmrsPersonType saveAmrsPersonType(AmrsPersonType amrsPersonType);
+
+    public AmrsPersonType getAmrsPersonTypeByUuid(String uuid);
 }
