@@ -1,11 +1,9 @@
 package org.openmrs.module.fctsupport.aop;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.aopalliance.aop.Advice;
@@ -18,12 +16,11 @@ import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.FormService;
 import org.openmrs.api.ObsService;
-import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.context.Context;
 
 import org.openmrs.module.fctsupport.api.FCTSupportService;
-import org.openmrs.module.fctsupport.model.Amrscomplexobs;
+import org.openmrs.module.fctsupport.model.AmrsComplexObs;
 import org.openmrs.serialization.SerializationException;
 import org.springframework.aop.Advisor;
 import org.springframework.aop.support.StaticMethodMatcherPointcutAdvisor;
@@ -34,12 +31,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -47,10 +42,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
 import org.apache.commons.io.IOUtils;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.openmrs.serialization.SimpleXStreamSerializer;
 import org.openmrs.module.fctsupport.AMRSComplexObsConstants;
@@ -204,8 +196,8 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
                       //String serializedSavedData=F(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept);
                       //Save Data related to various persons
                       savePersonTypeDetails(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept,"parentGuardian");
-                      savePersonTypeDetails(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept,"nextOfKin");
-                      savePersonTypeDetails(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept,"treatmentSupporter");
+                     // savePersonTypeDetails(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept,"nextOfKin");
+                     // savePersonTypeDetails(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept,"treatmentSupporter");
 
 
 
@@ -284,10 +276,10 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
         SimpleXStreamSerializer sn=new SimpleXStreamSerializer();
         Map<String, String> map=  sn.deserialize(data,Map.class) ;
 
-        Amrscomplexobs amrscomplexobs=new Amrscomplexobs();
-        amrscomplexobs.setConceptData(data);
-        amrscomplexobs.setConcept(complexConcept);
-        //amrscomplexobs.setPatient(Context.getPatientService().getPatientB);
+        AmrsComplexObs amrsComplexObs =new AmrsComplexObs();
+        amrsComplexObs.setConceptData(data);
+        amrsComplexObs.setConcept(complexConcept);
+        //amrsComplexObs.setPatient(Context.getPatientService().getPatientB);
         /*private String conceptData;
         private Date encounterDatetime;
         private Concept concept;
@@ -421,13 +413,15 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
         for (Map.Entry<Integer, String> entry : mappedObsTosave.entrySet())
         {
 
-            String[] oa = mappedFormData.get(personType+entry.getValue()).split("^");
+            String[] oa = StringUtils.trim(mappedFormData.get(personType+entry.getValue())).split("^");
+            String s= StringUtils.trim(mappedFormData.get(personType+entry.getValue()));
+           Integer valudeCodedConceptId= Integer.valueOf(s.substring(0,s.indexOf('^') ));
             o.setConcept(cs.getConcept(entry.getKey()));
             o.setDateCreated(new Date());
             o.setCreator(Context.getAuthenticatedUser());
             o.setLocation(new Location(Integer.parseInt(locationId)));
             o.setObsDatetime(new Date());
-            o.setValueCoded(cs.getConcept(Integer.parseInt(oa[0])));
+            o.setValueCoded(cs.getConcept(valudeCodedConceptId));
             o.setPerson(person);
             listObsToSave.add(o);
 

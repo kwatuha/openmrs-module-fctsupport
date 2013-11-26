@@ -1,0 +1,40 @@
+<div id="formsHotlist">
+	<div class="boxHeader">Most Common Forms Entered By ${user.personName}</div>
+	<div class="box">
+		#if ((! $forms) || $forms.isEmpty())
+		<p>	
+			<i>You have not entered any forms in the last ${months} month(s)</i>
+		</p>
+		#else
+		<table id="formsHotlistTable" cellspacing="0" cellpadding="3">
+			<thead>
+				<tr>
+					<th class="sorting_asc">Name</th>
+					<th class="sorting">Version</th>
+					<th class="EncounterTypeClass sorting">Encounter Type</th>
+				</tr>
+			</thead>
+			<tbody>
+				#set ($count = 0)
+				#foreach ($form in $forms)
+				<tr class="#if ($count % 2 == 1) odd #else even #end">
+					<td>
+						<a href="moduleServlet/formentry/formDownload?personId=${personId}&patientId=${patientId}&returnUrl=&formId=${form.formId}&target=formentry" onclick="startDownloading();">${form.name}</a>
+					</td>
+					<td>
+						${form.version}
+						#if(!$form.published) <i>(Unpublished)</i> #end
+					</td>
+					<td class="EncounterTypeClass">
+						${form.encounterType.name}
+					</td>
+				</tr>
+				#set ($count = $count + 1)
+				#end
+			</tbody>
+		</table>
+		#end
+	</div>
+</div>
+
+<br/>

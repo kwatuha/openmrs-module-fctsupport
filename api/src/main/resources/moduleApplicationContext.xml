@@ -18,9 +18,9 @@
   		    http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 	<!-- Add here beans related to the API context -->
-
 	
 	<!-- Services accessible via Context.getService() -->
+    <context:component-scan base-package="org.openmrs.module.fctsupport.web.controller"/>
 	<bean parent="serviceContext">
 		<property name="moduleService">
 			<list>

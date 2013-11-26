@@ -1,20 +1,17 @@
 <?xml version="1.0"?>
 <!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
 <hibernate-mapping>
-<class name="org.openmrs.module.fctsupport.model.AmrsComplexObs" table="amrsComplexObs">
+<class name="org.openmrs.module.amrsComplexObs.model.AmrsPersonType" table="amrs_person_type">
  <cache usage="read-write"/>
 
-		<id name="id" type="int"  column="amrscomplexobs_id"  unsaved-value="0">
+		<id name="id" type="int"  column="person_type_id"  unsaved-value="0">
 		<generator class="org.openmrs.api.db.hibernate.NativeIfNotAssignedIdentityGenerator" />
 		</id>
+		
+<property name="personTypeName" type="java.lang.String"	column="person_type_name" length="255" />
+    <property name="displayPosition" type="java.lang.Integer"	column="display_position" length="11" />
 
-    <many-to-one name="person"   class="org.openmrs.Person" column="related_person_id" />
-    <many-to-one name="location" class="org.openmrs.Location" column="location_id" />
-    <many-to-one name="provider" class="org.openmrs.Provider" column="provider_id" />
-    <many-to-one name="formId"   class="org.openmrs.Form" column="form_id" not-null="true" />
-    <many-to-one name="patient"  class="org.openmrs.Patient" column="patient_id" />
-    <property    name="encounterDatetime" type="java.util.Date" column="encounter_datetime"  not-null="true" />
-
+<property name="description" type="java.lang.String"	column="description" length="255" />
 
 			<many-to-one name="creator" class="org.openmrs.User"
 			column="creator" not-null="true" />

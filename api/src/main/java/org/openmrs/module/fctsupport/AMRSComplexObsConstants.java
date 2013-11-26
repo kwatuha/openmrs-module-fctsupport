@@ -30,4 +30,6 @@ public class AMRSComplexObsConstants {
     /** The default submit date format. */
     public static final String DEFAULT_DATE_SUBMIT_FORMAT = "yyyy-MM-dd";//yyyy-mm-dd
 
+    public static final String VELOCITY_TEMPLATE_FOLDER = "/org/openmrs/module/amrscustomization/templates/";
+
 }

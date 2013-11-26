@@ -22,7 +22,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Expression;
 import org.openmrs.Field;
 import org.openmrs.module.fctsupport.api.db.FCTSupportDAO;
-import org.openmrs.module.fctsupport.model.Amrscomplexobs;
+import org.openmrs.module.fctsupport.model.AmrsComplexObs;
 
 /**
  * It is a default implementation of  {@link FCTSupportDAO}.
@@ -56,36 +56,36 @@ public class HibernateFCTSupportDAO implements FCTSupportDAO {
         return fieldUuids;
     }
 
-    public Amrscomplexobs saveAmrscomplexobs(Amrscomplexobs amrscomplexobs) {
+    public AmrsComplexObs saveAmrscomplexobs(AmrsComplexObs amrsComplexObs) {
         // TODO Auto-generated method stub
 
-        sessionFactory.getCurrentSession().saveOrUpdate(amrscomplexobs);
+        sessionFactory.getCurrentSession().saveOrUpdate(amrsComplexObs);
 
-        return amrscomplexobs;
+        return amrsComplexObs;
 
     }
 
 
     @SuppressWarnings("unchecked")
-    public List<Amrscomplexobs> getAmrscomplexobs() {
+    public List<AmrsComplexObs> getAmrscomplexobs() {
         // TODO Auto-generated method stub
 
 
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Amrscomplexobs.class);
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(AmrsComplexObs.class);
 
 
         return criteria.list();
 
     }
     @SuppressWarnings("unchecked")
-    public Amrscomplexobs getAmrscomplexobsByUuid(String uuid) {
+    public AmrsComplexObs getAmrscomplexobsByUuid(String uuid) {
 
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Amrscomplexobs.class).add(
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(AmrsComplexObs.class).add(
                 Expression.eq("uuid", uuid));
 
         @SuppressWarnings("unchecked")
 
-        List<Amrscomplexobs>amrscomplexobs=criteria.list();
+        List<AmrsComplexObs>amrscomplexobs=criteria.list();
         if (null==amrscomplexobs||amrscomplexobs.isEmpty()){
             return null;
         }

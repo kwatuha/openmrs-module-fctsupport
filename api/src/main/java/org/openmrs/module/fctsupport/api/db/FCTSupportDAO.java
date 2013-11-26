@@ -16,7 +16,7 @@ package org.openmrs.module.fctsupport.api.db;
 import java.util.List;
 import org.openmrs.Field;
 import org.openmrs.module.fctsupport.api.FCTSupportService;
-import org.openmrs.module.fctsupport.model.Amrscomplexobs;
+import org.openmrs.module.fctsupport.model.AmrsComplexObs;
 
 /**
  *  Database methods for {@link FCTSupportService}.
@@ -29,9 +29,9 @@ public interface FCTSupportDAO {
 
     public List<Field> getComplexConceptFieldUuids();
 
-    public Amrscomplexobs saveAmrscomplexobs(Amrscomplexobs amrscomplexobs);
+    public AmrsComplexObs saveAmrscomplexobs(AmrsComplexObs amrsComplexObs);
 
-    public List<Amrscomplexobs> getAmrscomplexobs();
+    public List<AmrsComplexObs> getAmrscomplexobs();
 
-    public Amrscomplexobs getAmrscomplexobsByUuid(String uuid);
+    public AmrsComplexObs getAmrscomplexobsByUuid(String uuid);
 }

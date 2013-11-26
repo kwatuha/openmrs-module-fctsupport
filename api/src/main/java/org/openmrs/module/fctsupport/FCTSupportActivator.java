@@ -52,7 +52,7 @@ public class FCTSupportActivator implements ModuleActivator {
 	 */
 	public void started() {
 		log.info("FCT Support Module started");
-        log.info("Starting Amrscomplexobs module");
+        log.info("Starting AmrsComplexObs module");
         Context.getObsService().registerHandler("OutReachMotherHandler", new OutreachMotherHandler());
 	}
 	

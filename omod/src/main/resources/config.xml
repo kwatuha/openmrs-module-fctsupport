@@ -28,8 +28,19 @@
 		<point>org.openmrs.admin.list</point>
 		<class>${project.parent.groupId}.${project.parent.artifactId}.extension.html.AdminList</class>
 	</extension>
-	
-	<!-- Maps hibernate file's, if present -->
+
+
+<extension>
+<point>org.openmrs.encounters.encounterListTop</point>
+<class>@MODULE_PACKAGE@.extension.html.CustomizeDisplay</class>
+</extension>
+
+    <extension>
+        <point>org.openmrs.patientDashboardTab</point>
+        <class>org.openmrs.module.fctsupport.extension.html.AmrscomplexobsPatientDashboardTab</class>
+    </extension>
+
+        <!-- Maps hibernate file's, if present -->
 	<mappingFiles>
 				
 		Subform.hbm.xml
