@@ -41,11 +41,9 @@
     </extension>
 
         <!-- Maps hibernate file's, if present -->
-	<mappingFiles>
-				
-		Subform.hbm.xml
-				
-	</mappingFiles>
+    <mappingFiles>
+        ${omodHbmConfig}
+    </mappingFiles>
 
 	<!-- Internationalization -->
 	<!-- All message codes should start with ${project.parent.artifactId}. -->
@@ -67,6 +65,32 @@
         <point>org.openmrs.module.xforms.XformsService</point>
         <class>org.openmrs.module.fctsupport.aop.ProcessObs</class>
     </advice>
+
+    <!-- DWR -->
+    <dwr>
+        <allow>
+            <create creator="new" javascript="DWRFctSupportService">
+                <param name="class" value="org.openmrs.module.${project.parent.artifactId}.web.DWRFctSupportService"/>
+
+                <include method="savePersonTypeDetails"/>
+                <include method="savePersonTypeDwr"/>
+
+
+
+            </create>
+            <convert converter="bean" match="${project.parent.groupId}.${project.parent.artifactId}.AmrsPersonType"/>
+        </allow>
+
+        <signatures>
+            <![CDATA[
+			import ${project.parent.groupId}.${project.parent.artifactId}.web.DWRFctSupportService;
+
+                DWRFctSupportService.savePersonTypeDetails(String  persontypename,Integer displayPosition,String  fieldName,String  description);
+                DWRFctSupportService.savePersonTypeDwr();
+
+			]]>
+        </signatures>
+    </dwr>
 
 </module>
 

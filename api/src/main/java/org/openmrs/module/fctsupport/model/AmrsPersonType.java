@@ -5,8 +5,18 @@ public class AmrsPersonType extends BaseOpenmrsData{
 
 private  String personTypeName;
 private  String description;
-private Integer id;
-private Integer displayPosition;
+private  Integer id;
+private  Integer displayPosition;
+private  String fieldName;
+
+    public String getFieldName() {
+        return fieldName;
+    }
+
+    public void setFieldName(String fieldName) {
+        this.fieldName = fieldName;
+    }
+
 
     public Integer getDisplayPosition() {
         return displayPosition;

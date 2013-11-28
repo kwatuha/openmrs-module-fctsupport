@@ -467,14 +467,14 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
         }
     }
 
-    public void createPersonsFrmSubmitXml(Map<String,String>map,String providerId,String patientIdentifier,String formId,String encounterDate,String locationId, Concept complexConcept,String personType)
+    public void createPersonsFrmSubmitXml(Map<String,String>map,String providerId,String patientIdentifier,String formId,String encounterDate,String locationId, Concept complexConcept)
             throws SerializationException,ParseException {
                     FCTSupportService service=Context.getService(FCTSupportService.class);
                     List<AmrsPersonType> personTpesList=service.getAmrsPersonTypes();
                     if(personTpesList.size()>0){
                             for(AmrsPersonType personType :personTpesList){
 
-                             savePersonTypeDetails(map, providerId.toString(), patientIdentifier, formId, encounterDate, locationId, complexConcept, personType.getPersonTypeName());
+                             savePersonTypeDetails(map, providerId.toString(), patientIdentifier, formId, encounterDate, locationId, complexConcept, personType.getFieldName());
                             }
                     }
 
