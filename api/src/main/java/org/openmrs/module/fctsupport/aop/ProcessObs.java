@@ -173,8 +173,15 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
                   curNode=(Node)  xPath.evaluate(AMRSComplexObsConstants.PATIENT_NODE, doc, XPathConstants.NODE);
                   String patientIdentifier = xPath.evaluate(AMRSComplexObsConstants.PATIENT_ID, curNode);
                   String formIdStr=xPath.evaluate("/form/@id", doc);
+                  Map<String, String> map = new HashMap<String, String>();
 
-
+                  //Collect General details
+                  map.put("providerId",providerId.toString());
+                  map.put("locationId",locationId);
+                  map.put("encounterDate",encounterDate);
+                  map.put("formId",formIdStr);
+                  map.put("patientId",patientIdentifier);
+                  map.put("complexConceptdMapped",complexConcept.getId().toString());
                  //end of generail information
 
 
@@ -188,7 +195,7 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
 
                       NodeList NodeListChild= complexFieldNodeList.item(i).getChildNodes();
 
-                      Map<String, String> map = new HashMap<String, String>();
+                     // Map<String, String> map = new HashMap<String, String>();
 
                       for (int x = 0; x < NodeListChild.getLength(); ++x) {
                           Node node = NodeListChild.item(x);
@@ -214,7 +221,9 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
                       }
                       //String serializedSavedData=F(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept);
                       //Save Data related to various persons
-                      savePersonTypeDetails(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept,"parentGuardian");
+                     // savePersonTypeDetails(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept,"parentGuardian");
+
+                      createPersonsFrmSubmitXml(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept);
                      // savePersonTypeDetails(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept,"nextOfKin");
                      // savePersonTypeDetails(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept,"treatmentSupporter");
 
@@ -374,18 +383,22 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
             Integer pid=personSaved.getId();
             if(pid>0){
                 map.put("personID",pid.toString()) ;
-                map.put("providerId",providerId);
+                /*map.put("providerId",providerId);
                 map.put("patientIdentifier",patientIdentifier);
                 map.put("formId",formId);
                 map.put("encounterDate",encounterDate);
                 map.put("locationId",locationId);
-
+*/
                 //Now save observations
                 List<Obs> listObs=getPersonObsToSave(map,FctSupportUtil.getMappedConceptData(),personSaved,encounterDate,locationId, personType);
                 for(Obs obs:listObs) {
                     obsService.saveObs(obs,"Saving Via Complex Obs Handler");
 
                 }
+
+                //save the person relation ship details
+
+                savePatientPersonRelationship(personSaved,encounterDate,locationId,providerId,patientIdentifier ,formId) ;
             }
             //
         }
@@ -449,13 +462,21 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
     }
 
 
-    public void savePatientPersonRelationship(Person person , Date encounterDatetime , Location location , Provider provider , Patient patient , Form formId){
+    public void savePatientPersonRelationship(Person person ,String encounterDate , String locationId , String providerId , String patientIdentifier , String formId) throws ParseException{
+
+        Location location=Context.getLocationService().getLocation(Integer.parseInt(locationId));
+        Provider provider=Context.getProviderService().getProvider(Integer.parseInt(providerId));
+        Patient patient=Context.getPatientService().getPatient(Integer.parseInt(patientIdentifier));
+        Form form=Context.getFormService().getForm(Integer.parseInt(formId)) ;
+        Date strToEncounterDate=FctSupportUtil.fromSubmitString2Date(encounterDate);
+
+
         if((person.getId()>0)&&(patient.getPatientId()>0)){
             AmrsComplexObs complexObs= new  AmrsComplexObs();
             complexObs.setPatient(patient);
             complexObs.setPerson(person);
-            complexObs.setFormId(formId);
-            complexObs.setEncounterDatetime(encounterDatetime);
+            complexObs.setFormId(form);
+            complexObs.setEncounterDatetime(strToEncounterDate);
             complexObs.setLocation(location);
             complexObs.setProvider(provider);
 
@@ -465,6 +486,7 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
             }
 
         }
+
     }
 
     public void createPersonsFrmSubmitXml(Map<String,String>map,String providerId,String patientIdentifier,String formId,String encounterDate,String locationId, Concept complexConcept)
@@ -473,11 +495,31 @@ public class ProcessObs extends StaticMethodMatcherPointcutAdvisor implements Ad
                     List<AmrsPersonType> personTpesList=service.getAmrsPersonTypes();
                     if(personTpesList.size()>0){
                             for(AmrsPersonType personType :personTpesList){
+                                String fieldName=personType.getFieldName();
+                                String familyName=map.get(fieldName+"family_name");
+                                String givenName=map.get(fieldName+"given_name");
+                                String middleName=map.get(fieldName+"middle_name");
+                                String personIdofExistingPerson=map.get(fieldName+"person_search_option");
+                               //ensure we have name for the patient when names are provided when saving new persons
+                                if((StringUtils.isBlank(personIdofExistingPerson))&&(StringUtils.isNotBlank(fieldName))&&((StringUtils.isNotBlank(familyName))||(StringUtils.isNotBlank(givenName))||(StringUtils.isNotBlank(middleName)))){
 
-                             savePersonTypeDetails(map, providerId.toString(), patientIdentifier, formId, encounterDate, locationId, complexConcept, personType.getFieldName());
-                            }
+
+                                    savePersonTypeDetails(map, providerId.toString(), patientIdentifier, formId, encounterDate, locationId, complexConcept,fieldName);
+                                }
+
+                                //ensure the patient/person is found when saving related person's details
+                                if(StringUtils.isNotBlank(personIdofExistingPerson)) {
+                                 Person foundPerson=Context.getPersonService().getPerson(Integer.parseInt(personIdofExistingPerson));
+
+
+                                 savePatientPersonRelationship(foundPerson, map.get("encounterDate"),map.get("locationId"),map.get("providerId"),map.get("patientId") ,map.get("formId")) ;
+                                }
+
+
                     }
 
-
+                    }
     }
+
+
 }

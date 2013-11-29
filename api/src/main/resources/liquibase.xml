@@ -23,6 +23,7 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="person_type_name" type="varchar(100)"/>
+            <column name="field_name" type="varchar(100)"/>
             <column name="display_position" type="int(11)"/>
             <column name="description" type="varchar(100)"/>
             <column name="creator" type="int(11)" defaultValue="0">
@@ -69,13 +70,13 @@
 
     <changeSet id="amrsComplexObs 2013-03-25" author="akwatuha">
         <preConditions onFail="MARK_RAN">
-            <not><tableExists tableName="amrsComplexObs"/></not>
+            <not><tableExists tableName="amrscomplexobs"/></not>
         </preConditions>
         <comment>
             Creating the amrsComplexObs table
         </comment>
 
-        <createTable tableName="amrsComplexObs">
+        <createTable tableName="amrscomplexobs">
 
             <column name="amrscomplexobs_id" type="int(11)">
                 <constraints primaryKey="true" nullable="false"/>
@@ -109,19 +110,19 @@
             <column name="uuid" type="char(38)">
                 <constraints nullable="false" /></column></createTable>
 
-        <createIndex tableName="amrsComplexObs" indexName="uuid">
+        <createIndex tableName="amrscomplexobs" indexName="uuid">
             <column name="uuid" />
         </createIndex>
     </changeSet>
     <changeSet id="amrscomplexobsautoicrement  2013-03-25" author="akwatuha">
-        <addAutoIncrement tableName="amrsComplexObs" columnName="amrscomplexobs_id" columnDataType="int"/>
+        <addAutoIncrement tableName="amrscomplexobs" columnName="amrscomplexobs_id" columnDataType="int"/>
     </changeSet>
     <changeSet id="amrsComplexObs-2013-03-25 amrsComplexObs uuid " author="kwatuha">
         <preConditions onFail="MARK_RAN">
             <dbms type="mysql" />
         </preConditions>
         <comment>Generating UUID row in amrsComplexObs table via built in uuid function.</comment>
-        <update tableName="amrsComplexObs">
+        <update tableName="amrscomplexobs">
             <column name="uuid" valueNumeric="name-of-uuid-function" />
             <where>uuid is null</where>
         </update>
