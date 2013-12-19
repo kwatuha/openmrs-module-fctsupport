@@ -1,5 +1,7 @@
 package org.openmrs.module.fctsupport.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -8,18 +10,45 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import org.apache.commons.lang.StringUtils;
+import org.openmrs.Concept;
+import org.openmrs.Field;
+import org.openmrs.Form;
+import org.openmrs.Location;
+import org.openmrs.Obs;
+import org.openmrs.Patient;
 import org.openmrs.Person;
+import org.openmrs.PersonAddress;
 import org.openmrs.PersonAttribute;
 import org.openmrs.PersonAttributeType;
+import org.openmrs.PersonName;
+import org.openmrs.Provider;
 import org.openmrs.User;
 import org.openmrs.api.ConceptService;
+import org.openmrs.api.FormService;
+import org.openmrs.api.ObsService;
+import org.openmrs.api.PersonService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.fctsupport.AMRSComplexObsConstants;
 import org.openmrs.module.fctsupport.OpenMRSTableFields;
+import org.openmrs.module.fctsupport.api.FCTSupportService;
+import org.openmrs.module.fctsupport.model.AmrsComplexObs;
+import org.openmrs.module.fctsupport.model.AmrsPersonType;
+import org.openmrs.serialization.SerializationException;
+import org.openmrs.serialization.SimpleXStreamSerializer;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * Created with IntelliJ IDEA.
@@ -630,5 +659,319 @@ public class FctSupportUtil {
         return map;
     }
 
+
+
+    //////////migraded
+    public static void showResultsR(String xml ) throws SerializationException, ParserConfigurationException, SAXException, IOException, XPathExpressionException,ParseException {
+        final Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new ByteArrayInputStream(xml.getBytes("UTF-8")));
+        final XPath xPath = XPathFactory.newInstance().newXPath();
+
+
+        FCTSupportService service=Context.getService(FCTSupportService.class);
+        List<Field> listComplexConceptFields=service.getComplexConceptFieldUuids();
+        Integer cml=listComplexConceptFields.size();
+        String providerUsername;
+        Integer providerId;
+        String locationId;
+        String encounterDate;
+
+        if(listComplexConceptFields.size()>0) {
+
+            for(Field complexField:listComplexConceptFields){
+
+                String fieldUuid = complexField.getUuid();
+                Concept complexConcept=complexField.getConcept();
+
+                //search form xml by field uuid
+                final XPathExpression expression = xPath.compile("//*[@openmrs_field_uuid='"+fieldUuid+"']");
+                final NodeList complexFieldNodeList = (NodeList) expression.evaluate(doc, XPathConstants.NODESET);
+
+                //get general form details
+                Node curNode=(Node)  xPath.evaluate(AMRSComplexObsConstants.ENCOUNTER_NODE, doc, XPathConstants.NODE);
+                providerUsername = xPath.evaluate(AMRSComplexObsConstants.ENCOUNTER_PROVIDER, curNode);
+                providerUsername=providerUsername.trim();
+                providerId=FctSupportUtil.getProviderId(providerUsername);
+
+                //Clean location id by removing decimal points
+                locationId= FctSupportUtil.cleanLocationEntry(xPath.evaluate(AMRSComplexObsConstants.ENCOUNTER_LOCATION, curNode)) ;
+                encounterDate=xPath.evaluate(AMRSComplexObsConstants.ENCOUNTER_ENCOUNTERDATETIME, curNode);
+
+                curNode=(Node)  xPath.evaluate(AMRSComplexObsConstants.PATIENT_NODE, doc, XPathConstants.NODE);
+                String patientIdentifier = xPath.evaluate(AMRSComplexObsConstants.PATIENT_ID, curNode);
+                String formIdStr=xPath.evaluate("/form/@id", doc);
+                Map<String, String> map = new HashMap<String, String>();
+
+                //Collect General details
+                map.put("providerId",providerId.toString());
+                map.put("locationId",locationId);
+                map.put("encounterDate",encounterDate);
+                map.put("formId",formIdStr);
+                map.put("patientId",patientIdentifier);
+                map.put("complexConceptdMapped",complexConcept.getId().toString());
+                //end of generail information
+
+
+                for (int i = 0; i < complexFieldNodeList.getLength(); ++i) {
+
+                    String subFieldUuid=((Element)complexFieldNodeList.item(i)).getAttribute("openmrs_field_uuid");
+                    Field subField=Context.getFormService().getFieldByUuid(subFieldUuid);
+                    String subFieldValue=(complexFieldNodeList.item(i)).getFirstChild().getNodeValue();
+
+
+
+                    NodeList NodeListChild= complexFieldNodeList.item(i).getChildNodes();
+
+                    // Map<String, String> map = new HashMap<String, String>();
+
+                    for (int x = 0; x < NodeListChild.getLength(); ++x) {
+                        Node node = NodeListChild.item(x);
+                        if (node.hasAttributes()) {
+                            Attr attr = (Attr) node.getAttributes().getNamedItem("openmrs_field_uuid");
+                            if (attr != null) {
+                                String attribute= attr.getValue();
+
+                                String complexConceptData= node.getTextContent();
+                                //map.put(attribute,complexConceptData);
+                                //Now get the field_name
+                                FormService formService=Context.getFormService();
+                                Field field=formService.getFieldByUuid(attribute);
+                                map.put(StringUtils.trim(field.getName()),complexConceptData);
+                            }
+
+                        }
+
+
+
+
+
+                    }
+                    //String serializedSavedData=F(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept);
+                    //Save Data related to various persons
+                    // savePersonTypeDetails(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept,"parentGuardian");
+
+                    createPersonsFrmSubmitXml(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept);
+                    // savePersonTypeDetails(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept,"nextOfKin");
+                    // savePersonTypeDetails(map,providerId.toString(),patientIdentifier,formIdStr,encounterDate,locationId,complexConcept,"treatmentSupporter");
+
+
+
+
+                }
+
+
+            }
+
+        }
+
+
+    }
+    //yet other
+    public static void savePatientPersonRelationship(Person person ,String encounterDate , String locationId , String providerId , String patientIdentifier , String formId) throws ParseException{
+
+        Location location=Context.getLocationService().getLocation(Integer.parseInt(locationId));
+        Provider provider=Context.getProviderService().getProvider(Integer.parseInt(providerId));
+        Patient patient=Context.getPatientService().getPatient(Integer.parseInt(patientIdentifier));
+        Form form=Context.getFormService().getForm(Integer.parseInt(formId)) ;
+        Date strToEncounterDate=FctSupportUtil.fromSubmitString2Date(encounterDate);
+
+
+        if((person.getId()>0)&&(patient.getPatientId()>0)){
+            AmrsComplexObs complexObs= new AmrsComplexObs();
+            complexObs.setPatient(patient);
+            complexObs.setPerson(person);
+            complexObs.setFormId(form);
+            complexObs.setEncounterDatetime(strToEncounterDate);
+            complexObs.setLocation(location);
+            complexObs.setProvider(provider);
+
+            if(Context.isAuthenticated()){
+                FCTSupportService service=Context.getService(FCTSupportService.class);
+                service.saveAmrscomplexobs(complexObs);
+            }
+
+        }
+
+    }
+
+    //other migrade
+    public static void createPersonsFrmSubmitXml(Map<String,String>map,String providerId,String patientIdentifier,String formId,String encounterDate,String locationId, Concept complexConcept)
+            throws SerializationException,ParseException {
+        FCTSupportService service=Context.getService(FCTSupportService.class);
+        List<AmrsPersonType> personTpesList=service.getAmrsPersonTypes();
+        if(personTpesList.size()>0){
+            for(AmrsPersonType personType :personTpesList){
+                String fieldName=personType.getFieldName();
+                String familyName=map.get(fieldName+"family_name");
+                String givenName=map.get(fieldName+"given_name");
+                String middleName=map.get(fieldName+"middle_name");
+                String personIdofExistingPerson=map.get(fieldName+"person_search_option");
+                //ensure we have name for the patient when names are provided when saving new persons
+                if((StringUtils.isBlank(personIdofExistingPerson))&&(StringUtils.isNotBlank(fieldName))&&((StringUtils.isNotBlank(familyName))||(StringUtils.isNotBlank(givenName))||(StringUtils.isNotBlank(middleName)))){
+
+
+                    FctSupportUtil.savePersonTypeDetails(map, providerId.toString(), patientIdentifier, formId, encounterDate, locationId, complexConcept,fieldName);
+                }
+
+                //ensure the patient/person is found when saving related person's details
+                if(StringUtils.isNotBlank(personIdofExistingPerson)) {
+                    Person foundPerson=Context.getPersonService().getPerson(Integer.parseInt(personIdofExistingPerson));
+
+
+                    savePatientPersonRelationship(foundPerson, map.get("encounterDate"),map.get("locationId"),map.get("providerId"),map.get("patientId") ,map.get("formId")) ;
+                }
+
+
+            }
+
+        }
+    }
+
+
+    //aoth other
+    public static  String savePersonTypeDetails(Map<String,
+            String>map,String providerId,String patientIdentifier,String formId,String encounterDate,String locationId, Concept complexConcept,String personType) throws SerializationException,ParseException {
+        SimpleXStreamSerializer sn=new SimpleXStreamSerializer();
+        String serializedData= sn.serialize(map);
+        PersonService personService=Context.getPersonService();
+        ObsService obsService=Context.getObsService();
+        ConceptService conceptService=Context.getConceptService();
+        if(!StringUtils.isBlank(serializedData)){
+            Person person =new Person();
+
+            PersonName personName= new PersonName();
+
+
+            personName.setFamilyName(map.get(personType+"family_name"));
+            personName.setGivenName(map.get(personType+"given_name"));
+            personName.setMiddleName(map.get(personType+"middle_name"));
+            personName.setPreferred(true);
+            personName.setVoided(false);
+
+            person.addName(personName);
+            person.setGender(map.get(personType+"sex"));
+            String strBirthDate=StringUtils.trim(map.get(personType+"birthdate"));
+            Date birthDate = FctSupportUtil.fromSubmitString2Date(strBirthDate);
+
+            if(map.get(personType+"birthdate_estimated")=="0")
+                person.setBirthdateEstimated(true);
+
+            if(map.get(personType+"birthdate_estimated")=="1")
+                person.setBirthdateEstimated(false);
+
+
+            person.setBirthdate(birthDate);
+
+            //Adding Address Details
+            PersonAddress address = new PersonAddress();
+
+            address.setAddress2(map.get(personType+"person_address.address2"));
+
+            String  address3="Landmark:"+map.get(personType+"landmark")+
+                    "Nearest Church:"+map.get(personType+"nearest_church")+
+                    "Nearest School:"+map.get(personType+"nearest_school")+
+                    "Nearest Shopping Center:"+map.get(personType+"nearest_shopping_center")+
+                    "Estate:"+map.get(personType+"estate")+
+                    "General Route:"+map.get(personType+"general_route");
+            address.setCityVillage("Town/House:"+map.get(personType+"residential_address_village_or_home")+
+                    "Home/House:"+map.get(personType+"person_address.city_village"));
+            address.setAddress3(address3);
+            address.setAddress5(map.get(personType+"sub_location"));
+            person.addAddress(address);
+
+
+            //add person Attributes
+
+            List<PersonAttribute> listPersonAttributes=getPersonAttributeData(map, FctSupportUtil.getMappedPersonAttributeData(),personType);
+
+            for(PersonAttribute personAttribute:listPersonAttributes) {
+                person.addAttribute(personAttribute);
+            }
+
+
+            //Saving person details
+            Person personSaved=personService.savePerson(person);
+            Integer pid=personSaved.getId();
+            if(pid>0){
+                map.put("personID",pid.toString()) ;
+                /*map.put("providerId",providerId);
+                map.put("patientIdentifier",patientIdentifier);
+                map.put("formId",formId);
+                map.put("encounterDate",encounterDate);
+                map.put("locationId",locationId);
+*/
+                //Now save observations
+                List<Obs> listObs=FctSupportUtil.getPersonObsToSave(map,FctSupportUtil.getMappedConceptData(),personSaved,encounterDate,locationId, personType);
+                for(Obs obs:listObs) {
+                    obsService.saveObs(obs,"Saving Via Complex Obs Handler");
+
+                }
+
+                //save the person relation ship details
+
+                savePatientPersonRelationship(personSaved,encounterDate,locationId,providerId,patientIdentifier ,formId) ;
+            }
+            //
+        }
+        //Final serialized data with personId and other essential data
+        serializedData=sn.serialize(map);
+
+        return serializedData;
+    }
+
+
+    //end of savinf details of a person type
+
+    public static List<PersonAttribute> getPersonAttributeData(Map<String, String> mappedFormData,Map<Integer, String> mappedPersonAttibutes,String personType){
+        List<PersonAttribute> listPersonAttributes=new ArrayList<PersonAttribute>() ;
+
+
+
+        for (Map.Entry<Integer, String> entry : mappedPersonAttibutes.entrySet())
+        {
+
+            PersonAttributeType personAttributeType = new PersonAttributeType();
+            personAttributeType.setPersonAttributeTypeId(entry.getKey()	);
+            PersonAttribute personAttribute = new PersonAttribute() ;
+            personAttribute.setAttributeType(personAttributeType);
+            personAttribute.setValue(mappedFormData.get(personType+entry.getValue()));
+            listPersonAttributes.add(personAttribute);
+
+        }
+
+
+        return listPersonAttributes;
+    }
+
+    public static List<Obs> getPersonObsToSave(Map<String, String> mappedFormData,Map<Integer, String> mappedObsTosave,Person person,String encounterDate,String locationId,String personType){
+        List<Obs> listObsToSave=new ArrayList<Obs>() ;
+
+        Obs o=new Obs();
+        ObsService os = Context.getObsService();
+        ConceptService cs = Context.getConceptService();
+
+
+
+
+        for (Map.Entry<Integer, String> entry : mappedObsTosave.entrySet())
+        {
+
+            String[] oa = StringUtils.trim(mappedFormData.get(personType+entry.getValue())).split("^");
+            String s= StringUtils.trim(mappedFormData.get(personType+entry.getValue()));
+            Integer valudeCodedConceptId= Integer.valueOf(s.substring(0,s.indexOf('^') ));
+            o.setConcept(cs.getConcept(entry.getKey()));
+            o.setDateCreated(new Date());
+            o.setCreator(Context.getAuthenticatedUser());
+            o.setLocation(new Location(Integer.parseInt(locationId)));
+            o.setObsDatetime(new Date());
+            o.setValueCoded(cs.getConcept(valudeCodedConceptId));
+            o.setPerson(person);
+            listObsToSave.add(o);
+
+        }
+        return listObsToSave;
+    }
+
+
+    //end migrade
 
 }

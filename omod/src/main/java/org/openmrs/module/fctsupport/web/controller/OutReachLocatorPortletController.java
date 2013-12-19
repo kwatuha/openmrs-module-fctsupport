@@ -14,7 +14,7 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.api.FormService;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.fctsupport.OpenMRSTableFields;
+
 
 import org.openmrs.web.controller.PortletController;
 import org.springframework.stereotype.Controller;
@@ -50,5 +50,21 @@ public class OutReachLocatorPortletController extends PortletController {
         model.put("patient",patient);
 
     }
+
+    private List<String, Object> generateObjectMap(MobileFormEntryError error) {
+        // try to stick to basic types; String, Integer, etc (not Date)
+        // JSP expects: [id, error, details, form name, comment]
+        MobileFormEntryErrorModel errorModel = new MobileFormEntryErrorModel(error, getFormType( error.getFormName()));
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("id", error.getMobileFormEntryErrorId());
+        result.put("location", error.getLocationId());
+        result.put("provider", error.getProviderId());
+        result.put("error", error.getError());
+        result.put("errorDetails", error.getErrorDetails());
+        result.put("formName", error.getFormName());
+        result.put("comment", error.getComment());
+        return result;
+    }
+
 }
 

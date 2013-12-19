@@ -30,10 +30,7 @@
 	</extension>
 
 
-<extension>
-<point>org.openmrs.encounters.encounterListTop</point>
-<class>@MODULE_PACKAGE@.extension.html.CustomizeDisplay</class>
-</extension>
+
 
     <extension>
         <point>org.openmrs.patientDashboardTab</point>
@@ -63,7 +60,7 @@
 
     <advice>
         <point>org.openmrs.module.xforms.XformsService</point>
-        <class>org.openmrs.module.fctsupport.aop.ProcessObs</class>
+        <class>org.openmrs.module.fctsupport.aop.ProcessComplexObs</class>
     </advice>
 
     <!-- DWR -->

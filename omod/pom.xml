@@ -72,6 +72,15 @@
 		
 		<!-- End OpenMRS core -->
 
+        <dependency>
+            <groupId>org.openmrs.module</groupId>
+            <artifactId>xforms</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openmrs.module</groupId>
+            <artifactId>xforms</artifactId>
+        </dependency>
 	</dependencies>
 
 	<build>
